@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Drishti — Live Prototype</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy:#0A2540; --navy-deep:#071B31; --navy-mid:#123A63;
+    --ice:#C9D6E3; --ice-soft:#EEF3F8;
+    --gold:#C9971F; --gold-light:#E8C468;
+    --text-dark:#1E293B; --text-muted:#64748B; --white:#FFFFFF;
+    --good:#2E9E6B;
+  }
+  *{ box-sizing:border-box; -webkit-tap-highlight-color: transparent; }
+  body{
+    margin:0; font-family:'Inter',sans-serif; background: var(--ice-soft); color: var(--text-dark);
+    -webkit-font-smoothing:antialiased;
+  }
+  .app{ max-width:480px; margin:0 auto; min-height:100vh; background: var(--ice-soft); padding-bottom: 2.5rem; }
+
+  header{ background: linear-gradient(135deg, var(--navy), var(--navy-deep)); color:var(--white); padding: 1.6rem 1.3rem 1.4rem; border-radius: 0 0 22px 22px; }
+  header .badge{ font-family:'IBM Plex Mono',monospace; font-size:0.62rem; letter-spacing:0.14em; color:var(--gold-light); text-transform:uppercase; }
+  header h1{ font-family:'Fraunces',serif; font-size:1.7rem; margin:0.3rem 0 0.2rem; }
+  header p{ margin:0; font-size:0.85rem; color:var(--ice); opacity:0.85; line-height:1.4; }
+  .stat-line{ margin-top:0.7rem !important; font-family:'IBM Plex Mono',monospace; font-size:0.68rem !important; color:var(--gold-light) !important; opacity:1 !important; letter-spacing:0.04em; }
+
+  section{ padding: 1.1rem 1.2rem; }
+  .label{ font-family:'IBM Plex Mono',monospace; font-size:0.66rem; letter-spacing:0.1em; color:var(--text-muted); text-transform:uppercase; margin-bottom:0.6rem; display:block; }
+
+  .seg-toggle{ display:flex; background:var(--white); border-radius:12px; padding:0.3rem; gap:0.3rem; border:1.5px solid var(--ice); }
+  .seg-btn{ flex:1; border:none; background:transparent; padding:0.6rem 0.4rem; border-radius:9px; font-size:0.78rem; font-weight:700; color:var(--text-muted); font-family:'Inter',sans-serif; cursor:pointer; transition:0.2s; }
+  .seg-btn.active{ background:var(--navy); color:var(--gold-light); }
+
+  .personas{ display:flex; gap:0.6rem; overflow-x:auto; padding-bottom:0.3rem; }
+  .persona{
+    flex-shrink:0; border:1.5px solid var(--ice); background:var(--white); border-radius:14px;
+    padding:0.7rem 0.9rem; min-width:150px; cursor:pointer; transition:0.2s;
+  }
+  .persona.active{ border-color:var(--gold); background: var(--navy); }
+  .persona .pname{ font-weight:700; font-size:0.88rem; color:var(--navy); }
+  .persona.active .pname{ color:var(--white); }
+  .persona .ptag{ font-size:0.72rem; color:var(--text-muted); margin-top:0.15rem; }
+  .persona.active .ptag{ color:var(--ice); }
+
+  .cta-wrap{ padding: 0.4rem 1.2rem 1.2rem; }
+  .cta-btn{
+    width:100%; border:none; border-radius:14px; padding:1.05rem; font-size:1.02rem; font-weight:700;
+    background: var(--gold); color:var(--navy-deep); font-family:'Inter',sans-serif; cursor:pointer;
+    box-shadow: 0 10px 24px rgba(201,151,31,0.35); transition: transform 0.15s;
+  }
+  .cta-btn:active{ transform: scale(0.97); }
+  .cta-btn:disabled{ background:var(--ice); color:var(--text-muted); box-shadow:none; }
+
+  .pipeline{ display:flex; flex-direction:column; gap:0; }
+  .stage, .gate{
+    display:flex; align-items:center; gap:0.8rem; padding:0.75rem 0; opacity:0.35; transition: opacity 0.4s ease;
+  }
+  .stage.active, .gate.active{ opacity:1; }
+  .stage .dot{
+    width:34px; height:34px; border-radius:50%; background:var(--ice); color:var(--text-muted);
+    display:flex; align-items:center; justify-content:center; font-size:1.05rem; flex-shrink:0; transition:0.4s;
+  }
+  .stage.active .dot{ background:var(--navy); color:var(--gold-light); }
+  .stage .txt strong{ display:block; font-size:0.92rem; color:var(--navy); }
+  .stage .txt span{ font-size:0.76rem; color:var(--text-muted); }
+  .connector{ width:2px; height:16px; background:var(--ice); margin-left:16px; }
+  .connector.active{ background:var(--gold); }
+  .gate{ margin-left: 0.2rem; }
+  .gate .dot{ width:28px; height:28px; border-radius:8px; background:var(--ice); color:var(--text-muted); font-size:0.85rem; }
+  .gate.active .dot{ background:var(--good); color:var(--white); }
+  .gate .txt strong{ font-size:0.8rem; color:var(--navy); }
+  .gate .txt span{ font-size:0.7rem; color:var(--text-muted); }
+
+  .card-wrap{ transition: opacity 0.5s ease, transform 0.5s ease; }
+  .card-wrap[hidden]{ display:none; }
+  .notif-card{
+    background:var(--white); border-radius:16px; padding:1.1rem; box-shadow: 0 14px 34px rgba(10,37,64,0.14);
+    border-left: 4px solid var(--gold);
+  }
+  .notif-card .app-row{ display:flex; align-items:center; gap:0.5rem; margin-bottom:0.6rem; }
+  .notif-card .app-icon{ width:26px; height:26px; border-radius:7px; background:var(--navy); color:var(--gold-light); font-size:0.7rem; font-weight:700; display:flex; align-items:center; justify-content:center; font-family:'IBM Plex Mono',monospace; }
+  .notif-card .app-name{ font-size:0.78rem; font-weight:700; color:var(--text-muted); }
+  .notif-card .event{ font-size:0.74rem; color:var(--gold); font-weight:600; margin-bottom:0.4rem; }
+  .notif-card .offer-text{ font-size:1rem; line-height:1.5; color:var(--text-dark); font-weight:500; min-height:3.2rem; }
+  .notif-card .cta-row{ display:flex; gap:0.6rem; margin-top:0.9rem; }
+  .notif-card .cta-row button{ flex:1; padding:0.6rem; border-radius:9px; border:none; font-weight:700; font-size:0.82rem; font-family:'Inter',sans-serif; }
+  .notif-card .cta-row .accept{ background:var(--navy); color:var(--white); }
+  .notif-card .cta-row .later{ background:var(--ice-soft); color:var(--text-muted); }
+
+  .notif-card.quiet{ border-left-color: var(--ice); }
+  .notif-card.quiet .offer-text{ color:var(--text-muted); font-style:italic; font-weight:400; font-size:0.92rem; }
+
+  .rm-card{
+    background:var(--white); border-radius:16px; padding:1.1rem; box-shadow: 0 14px 34px rgba(10,37,64,0.14);
+    border-left: 4px solid var(--good);
+  }
+  .rm-card.review{ border-left-color: var(--gold); }
+  .rm-top{ display:flex; align-items:center; justify-content:space-between; margin-bottom:0.5rem; }
+  .rm-top strong{ font-size:1rem; color:var(--navy); }
+  .conf-tag{ font-family:'IBM Plex Mono',monospace; font-size:0.68rem; font-weight:600; background:var(--ice-soft); color:var(--navy); padding:0.25rem 0.55rem; border-radius:999px; }
+  .rm-card .event{ font-size:0.78rem; color:var(--gold); font-weight:600; margin-bottom:0.6rem; }
+  .rm-status{ font-size:0.86rem; line-height:1.45; padding:0.65rem 0.8rem; border-radius:10px; margin-bottom:0.3rem; }
+  .rm-status.auto{ background:rgba(46,158,107,0.12); color:#1F7A50; }
+  .rm-status.review{ background:rgba(201,151,31,0.14); color:#8A6410; }
+  .rm-card .cta-row{ display:flex; gap:0.6rem; margin-top:0.8rem; }
+  .rm-card .cta-row button{ flex:1; padding:0.65rem; border-radius:9px; border:none; font-weight:700; font-size:0.82rem; font-family:'Inter',sans-serif; }
+  .rm-card .cta-row .accept{ background:var(--navy); color:var(--white); }
+  .rm-card .cta-row .later{ background:var(--ice-soft); color:var(--text-muted); }
+
+  .explain-toggle{
+    margin-top:0.9rem; background:none; border:none; padding:0; color:var(--navy); font-weight:700;
+    font-size:0.82rem; text-decoration:underline; cursor:pointer; font-family:'Inter',sans-serif;
+  }
+  .explain-panel{ margin-top:0.7rem; background:var(--ice-soft); border-radius:10px; padding:0.8rem 0.9rem; }
+  .trace-line{ font-size:0.8rem; color:var(--text-dark); line-height:1.6; }
+
+  .audit-toggle{
+    width:100%; background:var(--white); border:1.5px solid var(--ice); border-radius:12px; padding:0.8rem;
+    font-weight:700; font-size:0.85rem; color:var(--navy); cursor:pointer; font-family:'Inter',sans-serif;
+  }
+  .audit-log{ margin-top:0.7rem; background:var(--navy-deep); border-radius:10px; padding:0.8rem 0.9rem; max-height:220px; overflow-y:auto; }
+  .audit-line{ font-family:'IBM Plex Mono',monospace; font-size:0.72rem; color:var(--ice); line-height:1.9; border-bottom:1px solid rgba(255,255,255,0.08); padding-bottom:0.3rem; margin-bottom:0.3rem; }
+  .audit-line:last-child{ border-bottom:none; margin-bottom:0; }
+  .audit-line .t{ color:var(--gold-light); margin-right:0.5rem; }
+
+  .toast{
+    position:fixed; left:50%; bottom:1.4rem; transform:translateX(-50%) translateY(12px);
+    background:var(--navy-deep); color:var(--white); padding:0.75rem 1.1rem; border-radius:12px;
+    font-size:0.82rem; max-width:min(92vw,420px); text-align:center; opacity:0; pointer-events:none;
+    transition: opacity 0.25s ease, transform 0.25s ease; z-index:100; box-shadow:0 10px 30px rgba(0,0,0,0.3);
+  }
+  .toast.show{ opacity:1; transform:translateX(-50%) translateY(0); }
+
+  .lang-chips{ display:flex; flex-wrap:wrap; gap:0.5rem; }
+  .lang-chip{
+    padding:0.45rem 0.9rem; border-radius:999px; border:1.5px solid var(--ice); background:var(--white);
+    font-size:0.82rem; font-weight:600; color:var(--navy); cursor:pointer; transition:0.2s;
+  }
+  .lang-chip.active{ background:var(--navy); border-color:var(--navy); color:var(--gold-light); }
+
+  .voice-btn{
+    margin-top:1rem; width:100%; padding:0.85rem; border-radius:12px; border:1.5px solid var(--navy);
+    background:var(--white); color:var(--navy); font-weight:700; font-size:0.92rem; display:flex;
+    align-items:center; justify-content:center; gap:0.5rem; cursor:pointer; font-family:'Inter',sans-serif;
+  }
+  .voice-btn.playing{ background:var(--navy); color:var(--white); }
+  .wave{ display:flex; align-items:center; gap:2px; height:14px; }
+  .wave span{ width:3px; background:currentColor; border-radius:2px; animation: wave 0.9s ease-in-out infinite; }
+  .wave span:nth-child(1){ height:6px; animation-delay:0s; }
+  .wave span:nth-child(2){ height:12px; animation-delay:0.15s; }
+  .wave span:nth-child(3){ height:8px; animation-delay:0.3s; }
+  .wave span:nth-child(4){ height:14px; animation-delay:0.45s; }
+  @keyframes wave{ 0%,100%{ transform:scaleY(0.4);} 50%{ transform:scaleY(1);} }
+
+  .disclaimer{ font-size:0.7rem; color:var(--text-muted); line-height:1.4; margin-top:0.8rem; }
+
+  .reset-btn{
+    width: calc(100% - 2.4rem); margin: 0.6rem 1.2rem 0; padding:0.85rem; border-radius:12px;
+    border:1.5px dashed var(--text-muted); background:transparent; color:var(--text-muted); font-weight:600;
+    font-size:0.88rem; cursor:pointer; font-family:'Inter',sans-serif;
+  }
+
+  footer{ text-align:center; font-family:'IBM Plex Mono',monospace; font-size:0.62rem; letter-spacing:0.1em; color:var(--text-muted); padding:1.5rem 1rem 0.5rem; }
+
+  .fade-in{ animation: fadeIn 0.5s ease; }
+  @keyframes fadeIn{ from{ opacity:0; transform:translateY(8px);} to{ opacity:1; transform:translateY(0);} }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <header>
+    <span class="badge">SBI Hackathon &middot; Digital Engagement</span>
+    <h1>Drishti — Live Prototype</h1>
+    <p>Pick a customer, detect a signal, and watch the agent loop decide, translate, and voice a real nudge.</p>
+    <p class="stat-line">Signals engaged today: <strong id="counterVal">0</strong></p>
+  </header>
+
+  <section>
+    <span class="label">01 &middot; Choose a customer</span>
+    <div class="personas" id="personas"></div>
+  </section>
+
+  <div class="cta-wrap">
+    <button class="cta-btn" id="detectBtn">🔍 Detect Signal</button>
+  </div>
+
+  <section>
+    <span class="label">02 &middot; Watch the agents work</span>
+    <div class="pipeline" id="pipeline"></div>
+  </section>
+
+  <section class="card-wrap" id="viewToggleSection" hidden>
+    <span class="label">03 &middot; View as</span>
+    <div class="seg-toggle">
+      <button class="seg-btn active" id="btnCustomerView">👤 Customer</button>
+      <button class="seg-btn" id="btnRMView">🧑‍💼 Relationship Manager</button>
+    </div>
+  </section>
+
+  <section class="card-wrap" id="cardWrap" hidden></section>
+
+  <section class="card-wrap" id="langSection" hidden>
+    <span class="label">05 &middot; In the customer's own language</span>
+    <div class="lang-chips" id="langChips"></div>
+    <button class="voice-btn" id="voiceBtn">
+      <span>🔊</span><span id="voiceLabel">Play voice message</span>
+    </button>
+    <p class="disclaimer">Sample translations generated for this demo, for illustration only — have a native speaker verify exact wording before using this text in the real pitch or submission. Voice playback uses your phone's built-in text-to-speech; a production build would use Sarvam AI's voice models directly, with wider and more reliable language coverage.</p>
+  </section>
+
+  <section class="card-wrap" id="auditSection" hidden>
+    <button class="audit-toggle" id="auditToggleBtn">🧾 View audit trail ▾</button>
+    <div class="audit-log" id="auditLog" hidden></div>
+  </section>
+
+  <button class="reset-btn" id="resetBtn" hidden>↺ Try another customer moment</button>
+
+  <footer>DRISHTI &middot; SBI HACKATHON @ GFF 2026</footer>
+</div>
+
+<script>
+const personas = [
+  {
+    id:'ravi', name:'Ravi', tag:'Home loan EMI signal', confidence:94,
+    event:'📈 Salary jump + EMI debit to another bank detected',
+    offers:{
+      en:"Your home loan EMI is with another bank. Move it to SBI and enjoy a lower rate.",
+      hi:"आपकी होम लोन EMI किसी और बैंक में है। इसे SBI में ट्रांसफर करें और कम ब्याज दर पाएं।",
+      mr:"तुमचा होम लोन EMI दुसऱ्या बँकेत आहे. तो SBI मध्ये ट्रान्सफर करा आणि कमी व्याजदराचा लाभ घ्या.",
+      ta:"உங்கள் வீட்டுக் கடன் தவணை வேறு வங்கியில் உள்ளது. அதை SBI-க்கு மாற்றி குறைந்த வட்டி பெறுங்கள்.",
+      bn:"আপনার হোম লোন EMI অন্য ব্যাংকে আছে। এটি SBI-তে স্থানান্তর করুন এবং কম সুদের হার পান।",
+      kn:"ನಿಮ್ಮ ಗೃಹ ಸಾಲದ EMI ಬೇರೆ ಬ್ಯಾಂಕಿನಲ್ಲಿದೆ. ಅದನ್ನು SBI ಗೆ ವರ್ಗಾಯಿಸಿ ಕಡಿಮೆ ಬಡ್ಡಿದರ ಪಡೆಯಿರಿ."
+    }
+  },
+  {
+    id:'lakshmi', name:'Lakshmi', tag:'Senior citizen, pension signal', confidence:91,
+    event:'💰 Monthly pension credit detected',
+    offers:{
+      en:"Your pension just arrived. Grow it safely with an SBI Senior Citizen FD at a special rate.",
+      hi:"आपकी पेंशन अभी आई है। इसे SBI सीनियर सिटीजन FD में सुरक्षित रूप से बढ़ाएं।",
+      mr:"तुमचे पेन्शन नुकतेच आले आहे. ते SBI सीनियर सिटिझन FD मध्ये सुरक्षितपणे वाढवा.",
+      ta:"உங்கள் ஓய்வூதியம் வந்துவிட்டது. SBI மூத்த குடிமக்கள் FD-இல் பாதுகாப்பாக வளர்த்துக் கொள்ளுங்கள்.",
+      bn:"আপনার পেনশন এসেছে। SBI সিনিয়র সিটিজেন FD-তে নিরাপদে বাড়ান।",
+      kn:"ನಿಮ್ಮ ಪಿಂಚಣಿ ಬಂದಿದೆ. SBI ಹಿರಿಯ ನಾಗರಿಕ FD ನಲ್ಲಿ ಸುರಕ್ಷಿತವಾಗಿ ಬೆಳೆಸಿ."
+    }
+  },
+  {
+    id:'suresh', name:'Suresh', tag:'Small trader, UPI signal', confidence:78,
+    event:'📊 Rising UPI collections detected',
+    offers:{
+      en:"Your shop's UPI collections are growing. Get instant working-capital support with SBI.",
+      hi:"आपकी दुकान का UPI कलेक्शन बढ़ रहा है। SBI से तुरंत वर्किंग कैपिटल सहायता पाएं।",
+      mr:"तुमच्या दुकानाचे UPI कलेक्शन वाढत आहे. SBI कडून त्वरित वर्किंग कॅपिटल मदत मिळवा.",
+      ta:"உங்கள் கடையின் UPI வசூல் அதிகரித்து வருகிறது. SBI-இலிருந்து உடனடி மூலதன உதவி பெறுங்கள்.",
+      bn:"আপনার দোকানের UPI সংগ্রহ বাড়ছে। SBI থেকে তাৎক্ষণিক ওয়ার্কিং ক্যাপিটাল সহায়তা নিন।",
+      kn:"ನಿಮ್ಮ ಅಂಗಡಿಯ UPI ಸಂಗ್ರಹ ಹೆಚ್ಚುತ್ತಿದೆ. SBI ನಿಂದ ತಕ್ಷಣದ ವರ್ಕಿಂಗ್ ಕ್ಯಾಪಿಟಲ್ ಸಹಾಯ ಪಡೆಯಿರಿ."
+    }
+  }
+];
+
+const langMeta = {
+  en:{ label:'English', voice:'en-IN' },
+  hi:{ label:'हिंदी', voice:'hi-IN' },
+  mr:{ label:'मराठी', voice:'mr-IN' },
+  ta:{ label:'தமிழ்', voice:'ta-IN' },
+  bn:{ label:'বাংলা', voice:'bn-IN' },
+  kn:{ label:'ಕನ್ನಡ', voice:'kn-IN' }
+};
+
+const stages = [
+  { icon:'👁️', title:'Perceive', desc:'Reading transaction & UPI signals' },
+  { icon:'🧠', title:'Reason', desc:'Classifying the life event' },
+  { icon:'🌐', title:'Localise', desc:'Translating via the Bhasha Agent' },
+  { icon:'📨', title:'Act', desc:'Delivering through YONO' }
+];
+const gates = [
+  { after:1, title:'Consent & Eligibility Gate', desc:'Checked before drafting' },
+  { after:2, title:'Final Compliance Check', desc:'Checked after translation' }
+];
+
+let currentPersona = 0;
+let currentLang = 'en';
+let lastPersona = null;
+let viewMode = 'customer';
+let approvedOverride = false;
+let auditLog = [];
+let engagedCount = 0;
+const CONFIDENCE_THRESHOLD = 85;
+
+const personasEl = document.getElementById('personas');
+const pipelineEl = document.getElementById('pipeline');
+const detectBtn = document.getElementById('detectBtn');
+const viewToggleSection = document.getElementById('viewToggleSection');
+const btnCustomerView = document.getElementById('btnCustomerView');
+const btnRMView = document.getElementById('btnRMView');
+const cardWrap = document.getElementById('cardWrap');
+const langSection = document.getElementById('langSection');
+const auditSection = document.getElementById('auditSection');
+const auditToggleBtn = document.getElementById('auditToggleBtn');
+const auditLogEl = document.getElementById('auditLog');
+const resetBtn = document.getElementById('resetBtn');
+const langChipsEl = document.getElementById('langChips');
+const voiceBtn = document.getElementById('voiceBtn');
+const voiceLabel = document.getElementById('voiceLabel');
+const counterVal = document.getElementById('counterVal');
+
+function renderPersonas(){
+  personasEl.innerHTML = '';
+  personas.forEach((p, i) => {
+    const div = document.createElement('div');
+    div.className = 'persona' + (i === currentPersona ? ' active' : '');
+    div.innerHTML = `<div class="pname">${p.name}</div><div class="ptag">${p.tag}</div>`;
+    div.onclick = () => { currentPersona = i; renderPersonas(); resetDemo(); };
+    personasEl.appendChild(div);
+  });
+}
+
+let pipelineSteps = [];
+let connectorMap = {};
+
+function renderPipeline(){
+  pipelineEl.innerHTML = '';
+  pipelineSteps = [];
+  connectorMap = {};
+  let connCounter = 0;
+
+  stages.forEach((s, i) => {
+    if (i > 0) {
+      const connId = 'conn-' + (connCounter++);
+      const conn = document.createElement('div'); conn.className = 'connector'; conn.id = connId;
+      pipelineEl.appendChild(conn);
+      connectorMap['stage-' + i] = connId;
+    }
+
+    const row = document.createElement('div');
+    row.className = 'stage'; row.id = 'stage-' + i;
+    row.innerHTML = `<div class="dot">${s.icon}</div><div class="txt"><strong>${s.title}</strong><span>${s.desc}</span></div>`;
+    pipelineEl.appendChild(row);
+    pipelineSteps.push('stage-' + i);
+
+    const gate = gates.find(g => g.after === i);
+    if (gate) {
+      const connId = 'conn-' + (connCounter++);
+      const conn = document.createElement('div'); conn.className = 'connector'; conn.id = connId;
+      pipelineEl.appendChild(conn);
+      const gateId = 'gate-' + i;
+      connectorMap[gateId] = connId;
+
+      const gRow = document.createElement('div');
+      gRow.className = 'gate'; gRow.id = gateId;
+      gRow.innerHTML = `<div class="dot">✓</div><div class="txt"><strong>${gate.title}</strong><span>${gate.desc}</span></div>`;
+      pipelineEl.appendChild(gRow);
+      pipelineSteps.push(gateId);
+    }
+  });
+}
+
+function renderLangChips(){
+  langChipsEl.innerHTML = '';
+  Object.keys(langMeta).forEach(code => {
+    const chip = document.createElement('div');
+    chip.className = 'lang-chip' + (code === currentLang ? ' active' : '');
+    chip.textContent = langMeta[code].label;
+    chip.onclick = () => { currentLang = code; renderLangChips(); updateOfferTextInCard(); };
+    langChipsEl.appendChild(chip);
+  });
+}
+
+function updateOfferTextInCard(){
+  const el = document.getElementById('offerText');
+  if (!el || !lastPersona) return;
+  el.classList.remove('fade-in'); void el.offsetWidth;
+  el.textContent = lastPersona.offers[currentLang];
+  el.classList.add('fade-in');
+}
+
+function isAboveThreshold(p){
+  return p.confidence >= CONFIDENCE_THRESHOLD || approvedOverride;
+}
+
+function buzz(pattern){
+  if (navigator.vibrate) {
+    try { navigator.vibrate(pattern); } catch (e) { /* ignore unsupported devices */ }
+  }
+}
+
+function logAudit(text){
+  const time = new Date().toLocaleTimeString([], { hour:'2-digit', minute:'2-digit', second:'2-digit' });
+  auditLog.push({ time, text });
+}
+
+function renderAuditLog(){
+  auditLogEl.innerHTML = auditLog.map(e =>
+    `<div class="audit-line"><span class="t">${e.time}</span>${e.text}</div>`
+  ).join('');
+}
+
+function showToast(msg){
+  let toast = document.getElementById('toast');
+  if (!toast) {
+    toast = document.createElement('div');
+    toast.id = 'toast';
+    toast.className = 'toast';
+    document.body.appendChild(toast);
+  }
+  toast.textContent = msg;
+  toast.classList.add('show');
+  clearTimeout(showToast._t);
+  showToast._t = setTimeout(() => toast.classList.remove('show'), 2200);
+}
+
+function setViewMode(mode){
+  viewMode = mode;
+  btnCustomerView.classList.toggle('active', mode === 'customer');
+  btnRMView.classList.toggle('active', mode === 'rm');
+  renderResultCard();
+  renderLangSection();
+}
+
+function toggleExplain(){
+  const panel = document.getElementById('explainPanel');
+  const btn = document.getElementById('explainToggle');
+  if (!panel || !btn || !lastPersona) return;
+  const p = lastPersona;
+  const above = isAboveThreshold(p);
+  if (panel.hidden) {
+    panel.innerHTML = `
+      <div class="trace-line">&bull; Signal: ${p.event}</div>
+      <div class="trace-line">&bull; Confidence: ${p.confidence}%${approvedOverride && p.confidence < CONFIDENCE_THRESHOLD ? ' (RM-approved override)' : ''}</div>
+      <div class="trace-line">&bull; Consent: &check; Active — customer opted in to personalised offers</div>
+      <div class="trace-line">&bull; Eligibility: ${above ? '&check; Confirmed for this product' : '&#9888; Pending — held for relationship-manager confirmation'}</div>
+      <div class="trace-line">&bull; Routing: ${approvedOverride && p.confidence < CONFIDENCE_THRESHOLD ? 'RM-approved override — sent to customer' : (above ? 'Auto-sent (at or above the ' + CONFIDENCE_THRESHOLD + '% threshold)' : 'Escalated to RM (below the ' + CONFIDENCE_THRESHOLD + '% threshold)')}</div>
+    `;
+    panel.hidden = false;
+    btn.textContent = btn.dataset.label + ' ▴';
+  } else {
+    panel.hidden = true;
+    btn.textContent = btn.dataset.label + ' ▾';
+  }
+}
+
+function bindResultCardEvents(){
+  const explainToggle = document.getElementById('explainToggle');
+  if (explainToggle) explainToggle.onclick = toggleExplain;
+
+  const acceptBtn = document.getElementById('acceptBtn');
+  if (acceptBtn) acceptBtn.onclick = () => {
+    showToast('✓ Logged by the Feedback Agent — future nudges will learn from this.');
+    logAudit('Customer tapped View Offer');
+    renderAuditLog();
+  };
+
+  const laterBtn = document.getElementById('laterBtn');
+  if (laterBtn) laterBtn.onclick = () => {
+    showToast('Noted — the Feedback Agent will try a different time next.');
+    logAudit('Customer tapped Later');
+    renderAuditLog();
+  };
+
+  const approveBtn = document.getElementById('approveBtn');
+  if (approveBtn) approveBtn.onclick = () => {
+    approvedOverride = true;
+    showToast('✓ Approved — offer sent to customer.');
+    logAudit('RM approved and sent the offer');
+    renderAuditLog();
+    renderResultCard();
+    renderLangSection();
+  };
+
+  const holdBtn = document.getElementById('holdBtn');
+  if (holdBtn) holdBtn.onclick = () => {
+    showToast('Held — no offer sent yet.');
+    logAudit('RM held the offer for further review');
+    renderAuditLog();
+  };
+}
+
+function renderResultCard(){
+  if (!lastPersona) return;
+  const p = lastPersona;
+  const above = isAboveThreshold(p);
+  cardWrap.hidden = false;
+
+  if (viewMode === 'customer') {
+    cardWrap.innerHTML = above ? `
+      <span class="label">04 &middot; The customer sees this</span>
+      <div class="notif-card fade-in">
+        <div class="app-row"><div class="app-icon">YB</div><div class="app-name">YONO SBI &middot; powered by Drishti</div></div>
+        <div class="event">${p.event}</div>
+        <div class="offer-text" id="offerText">${p.offers[currentLang]}</div>
+        <div class="cta-row">
+          <button class="accept" id="acceptBtn">View Offer</button>
+          <button class="later" id="laterBtn">Later</button>
+        </div>
+        <button class="explain-toggle" id="explainToggle" data-label="Why this offer?">Why this offer? ▾</button>
+        <div class="explain-panel" id="explainPanel" hidden></div>
+      </div>` : `
+      <span class="label">04 &middot; The customer sees this</span>
+      <div class="notif-card quiet fade-in">
+        <div class="app-row"><div class="app-icon">YB</div><div class="app-name">YONO SBI &middot; powered by Drishti</div></div>
+        <div class="event">${p.event}</div>
+        <div class="offer-text">Confidence was below the auto-send threshold, so no autonomous offer was shown yet. Your relationship manager will reach out to confirm.</div>
+        <button class="explain-toggle" id="explainToggle" data-label="Why wasn't an offer sent?">Why wasn't an offer sent? ▾</button>
+        <div class="explain-panel" id="explainPanel" hidden></div>
+      </div>`;
+  } else {
+    cardWrap.innerHTML = `
+      <span class="label">04 &middot; The relationship manager sees this</span>
+      <div class="rm-card ${above ? 'auto' : 'review'} fade-in">
+        <div class="rm-top"><strong>${p.name}</strong><span class="conf-tag">${p.confidence}% confidence</span></div>
+        <div class="event">${p.event}</div>
+        ${above
+          ? (p.confidence >= CONFIDENCE_THRESHOLD
+              ? `<div class="rm-status auto">&check; Auto-sent to customer — at or above the ${CONFIDENCE_THRESHOLD}% threshold, no review needed</div>`
+              : `<div class="rm-status auto">&check; Approved by you and sent to the customer</div>`)
+          : `<div class="rm-status review">&#9888; Needs your review — below the ${CONFIDENCE_THRESHOLD}% threshold</div>
+             <div class="cta-row">
+               <button class="accept" id="approveBtn">✅ Approve &amp; Send</button>
+               <button class="later" id="holdBtn">⏸ Hold</button>
+             </div>`
+        }
+        <button class="explain-toggle" id="explainToggle" data-label="Why this decision?">Why this decision? ▾</button>
+        <div class="explain-panel" id="explainPanel" hidden></div>
+      </div>`;
+  }
+  bindResultCardEvents();
+}
+
+function renderLangSection(){
+  if (!lastPersona) { langSection.hidden = true; return; }
+  const show = viewMode === 'customer' && isAboveThreshold(lastPersona);
+  langSection.hidden = !show;
+  if (show) {
+    renderLangChips();
+    updateOfferTextInCard();
+  }
+}
+
+function resetDemo(){
+  window.speechSynthesis && window.speechSynthesis.cancel();
+  renderPipeline();
+  lastPersona = null;
+  approvedOverride = false;
+  auditLog = [];
+  viewMode = 'customer';
+  btnCustomerView.classList.add('active');
+  btnRMView.classList.remove('active');
+  viewToggleSection.hidden = true;
+  cardWrap.hidden = true;
+  cardWrap.innerHTML = '';
+  langSection.hidden = true;
+  auditSection.hidden = true;
+  auditLogEl.hidden = true;
+  auditLogEl.innerHTML = '';
+  auditToggleBtn.textContent = '🧾 View audit trail ▾';
+  resetBtn.hidden = true;
+  detectBtn.disabled = false;
+  detectBtn.textContent = '🔍 Detect Signal';
+}
+
+async function runDetection(){
+  detectBtn.disabled = true;
+  detectBtn.textContent = 'Analysing…';
+  const p = personas[currentPersona];
+  approvedOverride = false;
+  auditLog = [];
+  logAudit('Signal ingestion started for ' + p.name);
+
+  for (const id of pipelineSteps) {
+    await new Promise(res => setTimeout(res, 550));
+    const el = document.getElementById(id);
+    if (el) el.classList.add('active');
+    const connId = connectorMap[id];
+    if (connId) {
+      const conn = document.getElementById(connId);
+      if (conn) conn.classList.add('active');
+    }
+    buzz(12);
+
+    if (id.startsWith('stage-')) {
+      const idx = Number(id.split('-')[1]);
+      logAudit(stages[idx].title + ' — ' + stages[idx].desc);
+    } else if (id.startsWith('gate-')) {
+      const idx = Number(id.split('-')[1]);
+      const gate = gates.find(g => g.after === idx);
+      logAudit('✓ ' + gate.title + ' passed');
+    }
+  }
+
+  logAudit('Confidence scored at ' + p.confidence + '%');
+  logAudit(p.confidence >= CONFIDENCE_THRESHOLD
+    ? 'Routed: auto-send to customer'
+    : 'Routed: escalated to relationship manager for review');
+
+  await new Promise(res => setTimeout(res, 300));
+  lastPersona = p;
+  engagedCount++;
+  counterVal.textContent = engagedCount;
+
+  viewToggleSection.hidden = false;
+  renderResultCard();
+  renderLangSection();
+  auditSection.hidden = false;
+  renderAuditLog();
+  buzz([15, 30, 15]);
+
+  await new Promise(res => setTimeout(res, 200));
+  resetBtn.hidden = false;
+  detectBtn.textContent = '✓ Signal Processed';
+}
+
+function playVoice(){
+  const p = personas[currentPersona];
+  const text = p.offers[currentLang];
+  if (!('speechSynthesis' in window)) {
+    voiceLabel.textContent = 'Voice not supported on this browser';
+    return;
+  }
+  window.speechSynthesis.cancel();
+  const utter = new SpeechSynthesisUtterance(text);
+  const wantedLang = langMeta[currentLang].voice;
+  const voices = window.speechSynthesis.getVoices();
+  const match = voices.find(v => v.lang && v.lang.toLowerCase().startsWith(wantedLang.split('-')[0]));
+  if (match) utter.voice = match;
+  utter.lang = wantedLang;
+
+  voiceBtn.classList.add('playing');
+  voiceLabel.textContent = match ? 'Playing…' : 'Playing (closest available voice)…';
+
+  utter.onend = () => {
+    voiceBtn.classList.remove('playing');
+    voiceLabel.textContent = 'Play voice message';
+  };
+  utter.onerror = () => {
+    voiceBtn.classList.remove('playing');
+    voiceLabel.textContent = 'Voice unavailable for ' + langMeta[currentLang].label + ' on this device';
+  };
+  window.speechSynthesis.speak(utter);
+}
+
+detectBtn.addEventListener('click', runDetection);
+resetBtn.addEventListener('click', resetDemo);
+voiceBtn.addEventListener('click', playVoice);
+btnCustomerView.addEventListener('click', () => setViewMode('customer'));
+btnRMView.addEventListener('click', () => setViewMode('rm'));
+auditToggleBtn.addEventListener('click', () => {
+  auditLogEl.hidden = !auditLogEl.hidden;
+  auditToggleBtn.textContent = auditLogEl.hidden ? '🧾 View audit trail ▾' : '🧾 Hide audit trail ▴';
+});
+
+if ('speechSynthesis' in window) {
+  window.speechSynthesis.onvoiceschanged = () => window.speechSynthesis.getVoices();
+}
+
+renderPersonas();
+renderPipeline();
+</script>
+</body>
+</html>
