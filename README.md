@@ -214,7 +214,7 @@ Value is created for SBI first — cross-sell uplift from right-moment offers, a
 
 | Name | Organization | Role |
 |---|---|---|
-| _[Your name]_ | _[Your organization / Independent]_ | Team Lead & Full-Stack Engineer |
+| Rajpriyan S| Indipendent | Team Lead & Full-Stack Engineer |
 
 ## License / IP
 
